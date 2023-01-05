@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        1. 서버를 띄우기 위한 express 라이브러리 기본 셋팅
+        const express = require('express');
+        const app = express();
+
+        app.listen(8080, function(){
+            =>(서버 띄울 포트번호, 띄운 후 실행할 코드)
+            => 서버를 열 수 있게 하는 코드
+        });
+
+        - 터미널 입력> node 서버파일명.js  ==>> 서버를 열어준 것
+        - 브라우저에서 localhost:8080 으로 접속
+            
+
+        2. 요청을 처리하는 기계 제작하기
+        - 같은 naver 안에서도 클릭하는 것에 따라 url 뒤에
+          naver.com/beauty/home 이런식으로 뭐가 붙음
+        - 이는 GET 요청에 대한 답을 서버가 보내준것
+            => URL을 입력해서 서버에 GET 요청을 할 수 있음!!
+
+        app.get('경로', function(요청, 응답){
+            응답.send('hello')
+        })
+
+
+        ** 서버실행 자동화시키자
+        터미널> sudo npm install -g nodemon
+            => 다른 기능은 없고 서버를 자동으로 껐다 켜는 역할
+            => -g는 컴퓨터 내 모든 작업폴더에서 사용가능하게 한다는 의미(global)
+        터미널> nodemon server.js
+            => 이후 수정 후 저장하면 자동으로 서버 재실행
+
+        
+        3. html을 보내보쟈
+        app.get('/', function(request, response){
+            response.sendFile(__dirname + '/index.html');
+                    파일 보내기   디렉토리가       이거인거
+        })
+        - app.get 첫 파라미터에 '/'만 넣으면 홈페이지 의미
+
+
+
+
+
+     -->
+</body>
+</html>

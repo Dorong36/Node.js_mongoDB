@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        ** 이해가 필요없는 고정코드에는 🟪 
+
+
+        DB 종류1. 관계형 DB
+        - 가장 많이 쓰는건 관계형 DB => SQL이 필수적(다소 복잡)
+
+        DB 종류1. NoSQL
+        - Object 자료형으로 입출력 가능
+        - JS 사용하다보면 익숙할것
+        - 데이터 입출력에만 신경쓸 수 있음
+        => 제일 유명한게 MongoDB
+        
+        ✅ MongoDB 기본 설정
+        - 하드에 설치해서 사용도 가능하지만
+        - 호스팅을 받는 방식을 많이 사용
+            1. 가입하고 free 구독 버전에 서버위치 서울로 설정
+            2. Quick Start에서 db용 아이디와 비번 설정
+            3. database access애서 built-in-role을 Atlas admin으로 설정
+                => 이거 해줘야 node.js에서 그 아이디로 접속가능
+            4. network access에서 IP Address 추가
+                => 일단 쉽게 사용할거니까 Allow access from anywhere 선택
+            5. database 탭에서 browse collorction 클릭
+                => add my own data 클릭 => db와 collection 각각 이름 작명
+                => 그 이후 나오는 접속 url 복사해두기
+
+        - server.js에서
+            🟪 const MongoClient = require('mongodb').MongoClient;
+
+            🟪 MongoClient.connect('복사한 접속 url', function(error, client){ // 1. db 접속이 완료되면
+                //               url중 => ** <password>자리에는 설정한 db 비밀번호 입력
+
+                // 에러가 나면 이유 error 파라미터에 답긴 에러를 출력
+                if(error) return console.log(error);
+
+                // 0. app.listen 안으로 넣어주기
+                app.listen(8080, function(){ // 2. 8080에 서버를 띄워라~~(서버 잘 뜨면 접속 된것)
+                    console.log('listening on 8080') 
+                });
+            })
+
+
+        - db와 collection
+            => db가 전체의 큰 폴더라면
+            => collection은 각각의 파일들
+
+
+
+        ✅ MongoDB에 데이터 저장하기 
+        1. 외부에 db 정보를 담기위한 변수 선언
+            var db;
+
+        2. MongoClient.connect 내부 콜백함수에서 
+            // todoapp이라는 database(폴더)에 연결해주세요
+                db = client.db('DB이름')
+            // 데이터 저장해보자 (임시로 고정적 코드를 넣어봄)
+                db.collection('collection이름').insertOne({저장할 데이터 오브젝트 형식},
+                function(error, result){실행문})
+            => 데이터 저장해보면 _id라는 값이 자동으로 생성되어있는 것을 볼 수 있는데,
+               데이터를 구분하는 고유값인 id가 없어 강제로 부여한것!!
+               => 데이터 넣어줄 때 _id 속성을 꼭 넣어주자!!
+            ex) {_id : 1, name : 'Yu'}
+
+
+
+
+     -->
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        1. get 함수 들여다보기
+        - app.get함수 안에 함수가 들어가있음 => 콜백함수
+            => 이는 순차적으로 실행하고 싶을 때 자주 사용
+        - 화살표문법도 사용가능
+        - 요청(request)는 요청내용을 의미
+        - 응답(response)는 응답할 방법을 의미
+
+
+        2. submit 버튼으로 폼에 입력한 내용 전달
+        <form action="/add" method="POST">
+        - form 태그 기능개발에 필수적인 두 속성
+        - method => 정보를 어떤 형태로 전달할 거냐 (GET, POST)
+            => POST가 글쓰기 등의 역할로 관습적으로 많이 쓰임
+        - action => /add 경로로 POST 요청함
+
+        - 서버 파일에서
+        app.post('/add', function(request, response){
+            response.send('전송완료')
+        })
+
+        - submit 누르면 response.send 내용이 뜸
+        - 그렇다면 우리가 입력한 내용은 어디로 갔을까?
+        - request에 담겨있음!!!
+        - 이를 쉽게 꺼내쓰려면 라이브러리 필요!!
+            => body-parser
+            터미널> npm install body-parser
+            => 서버파일 상단에 기본코드 추가
+            const bodyParser = require('body-parser');
+            app.use(bodyParser.urlencoded({extended : true}));
+        
+        - ✅ POST 요청으로 서버에 데이터 전송하고 싶으면
+            1. bodyParser 설치 및 기본 코드 작성
+            2. form 데이터에서 input들에 name 쓰기
+            3. app.post 콜백 함수 실행문에서 request.body라고 하면
+              요청했던 form에 적힌 데이터 수신 가능
+        
+
+
+
+
+
+
+     -->
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        - db에 저장한 데이터들 불러와서 보여주기
+
+        - html 만들어서 데이터 불러와보쟈
+            => 근데 이게 쉽지 않음
+            => 이를 쉽게할 수 있게 도와주는 라이브러리 => 🌟 ejs 🌟
+        
+        1️⃣ ejs 파일 생성
+            1. 터미널> npm install ejs
+            2. views 폴더 생성
+            3. views 폴더 내에 데이터 읽을 html파일을 ejs 확장자로 생성하기
+            
+        
+        2️⃣ ejs 불러오기 - server.js 파일에서
+            1. 기본 세팅 해주기
+                🟪 app.set('view engine', 'ejs');
+            2. app.get으로 요청에 응답한다면
+                app.get('/경로', (request, response)=>{
+                    // 1. db에서 자료 찾기
+                    // db.collection('collection이름').find(); => find()만 하면 모든 메타데이터 다가져옴
+                    db.collection('collection이름').find().toArray((error, result)=>{
+                        // 2. ejs파일에 데이터 넣어서 보여주기
+                        response.render('파일.ejs', { ejs에_넘겨줄_변수명 : result });
+                        //                           => 찾은 데이터파일이 담긴 result를 object로 넘겨주기
+                    });
+                })
+
+
+        3️⃣ ejs 파일에서 sever에서 넘겨준 데이터 사용하기
+            1. 데이터가 들어갈 부분에 <%= %> 기호를 사용해 넣어주기
+            2. 넘겨준 result가 담긴 변수이름을 기준으로 사용
+                ex) <%= posts[0].title %>
+            3. JavaScript 문법을 사용하고싶다면? 조금 다르게 <% %>를 사용 (=제외)
+                +) 문법 사이에 html 태그가 들어가야한다면,
+                   각 줄마다 기호 <% %>를 열었다 닫았다 해줘야함
+                ex)
+                    <% posts.map((data)=>{ %>
+                        <h4>할일 제목 : <%= data.title %></h4>
+                        <p>할일 마감날짜 : <%= data.date %></p>
+                    <% }) %>
+
+
+        🔸 ejs같은 역할의 대체품들이 있는데 그게 바로
+            => react, vue, angular
+
+        
+        ✅ 글 번호 달아보기
+        - 지금 고유의 id 값을 넘겨주지 않아서 임의로 정해지고있음
+        - 데이터가 많아지고 관리를 하려면 id 값을 지정해줘야함!!
+
+        - db에 항목을 추가할 때마다 자동으로 1씩 증가시켜 저장하는 기능 (auto increment)
+            => 근데 mongoDB는 그런게 없음
+
+        - 전체 데이터 갯수를 읽어서 거기에 +1을 순차적으로 저장해주면 안될까?
+            => 안됨!! 만약 데이터 몇 개 삭제하면 새로 생기는 데이터들에서 중복발생
+            => 애초에 고유한 id를 담아주는게 중요하다!!
+
+        - id를 관리하는 collection을 만들어서 관리해보자
+            => collection 생성해서 데이터 수동으로 넣기
+            => ex) { totalPost : 0, name : "postCnt" }
+
+        - server.js에서 이를 종합적으로 사용해보쟈
+        app.post('/경로', function(request, response){
+            // ✅ 1. db 총게시물 갯수 데이터 가져오기
+            db.collection('갯수세기용collection').findOne({name : 'postCnt'}, function(error, result){
+                // ✅ 2. 변수에 담아주고
+                let totalPost = result.totalPost
+                // ✅ 3. 갯수 데이터 _id에 넣어서 저장해주기
+                db.collection('post').insertOne({_id: totalPost + 1, title : request.body.title, date : request.body.date},
+                    (error, result) => {
+                        // ✅ 4. 이제 갯수 데이터 +1 해주기
+                        // 🔸 순차적 실행을 위해 콜백함수 안에 넣어주자
+                        // 수정함수({어떤 데이터 수정할지}, {수정사항}, 콜백함수(없어도 무관))
+                        // 수정사항 입력할 때는 operator와 함께 두 번 {}에 담아줘야함!!
+                        // $~~ 가 바로 operator인데, 여러가지가 있음
+                        // $set(변경), $inc(증가), $min(기존값보다 적을 때만 변경), $rename(key 값 이름변경), ...
+                        // => {$set : {바꿀요소 : new value}}
+                        // => {$inc : {바꿀요소 : 기존값에 더해줄 값}}
+                        db.collection('counter').updateOne({name : 'postCnt'}, {$inc : {totalPost : 1}}, function(error, result){
+                            if(error) console.log(error)
+                        })
+                })
+                
+            });
+            
+        })
+
+
+
+     -->
+</body>
+</html>
