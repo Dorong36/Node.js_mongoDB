@@ -5,8 +5,12 @@ const app = express();
 //     console.log('listening on 8080')
 // });
 
+// static 파일 보관 public 폴더 알려주기
+app.use('/public', express.static('public'));
+
 // body parser
 const bodyParser = require('body-parser');
+const req = require('express/lib/request');
 app.use(bodyParser.urlencoded({extended : true}));
 
 // mongoDB
@@ -14,6 +18,23 @@ const MongoClient = require('mongodb').MongoClient;
 
 // ejs
 app.set('view engine', 'ejs');
+
+// method-override
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'));
+
+// session - require
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+// session - 미들웨어
+app.use(session({secret : '123123', resave : true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session()); 
+
+
+
+
 
 
 // 어떤 db에 저장할 것인가 명시하기 위해 변수 생성
@@ -53,11 +74,11 @@ function(error, client){ // 1. db 접속이 완료되면
 
 // 페이지
 app.get('/', function(request, response){
-    response.sendFile(__dirname + '/index.html');
+    response.render('index.ejs')
 })
 
 app.get('/write', function(request, response){
-    response.sendFile(__dirname + '/write.html');
+    response.render('write.ejs')
 })
 
 
@@ -99,3 +120,149 @@ app.get('/list', (request, response)=>{
         response.render('list.ejs', {posts : result});
     });
 })
+
+
+// 데이터 지우기
+// app.delete('/delete', (request, response)=>{
+//     // 데이터 찍어보기
+//     console.log(request.body); // 숫자 id 데이터가 문자형으로 들어와있음 (종종 이런 경우가 생긴다!!)
+//     // 숫자형으로 변환
+//     request.body._id = parseInt(request.body._id);
+
+//     // 진짜 삭제해주기
+//     db.collection('post').deleteOne(request.body, (error, result)=>{
+//         console.log('delete is done');
+//         response.status(200).send({message : 'success'});
+//         // response.status(400).send({message : 'fail'});
+//     })
+// })
+
+// 데이터 지우기 url parameter version
+app.delete('/delete/:id', (request, response)=>{
+    db.collection('post').deleteOne({_id : parseInt(request.params.id)}, (error, result)=>{
+        console.log(result)
+        response.status(200).send({message : 'success'});
+    })
+})
+
+
+app.get('/detail/:id', (req, res)=>{
+    db.collection('post').findOne({_id : parseInt(req.params.id)}, function(error, result){
+        if(result != null){
+            res.render('detail.ejs', {data : result});
+        }else{
+            res.send('404')
+        }
+    })
+})
+
+
+
+// edit 페이지 만들기
+// get
+app.get('/edit/:id', (req, res)=>{
+    db.collection('post').findOne({_id : parseInt(req.params.id)}, function(error, result){
+        console.log(result)
+        if(result != null){
+            res.render('edit.ejs', {data : result});
+        }else{
+            res.send('404')
+        }
+    })
+})
+
+// post로 업데이트 하기
+/*
+app.post('/edit/:id', (req, res)=>{
+    db.collection('post').updateOne({_id : parseInt(req.params.id)},
+    { $set : {title : req.body.title, date : req.body.date}}, (error, result)=>{
+        if(error){
+            console.log(error)
+        }else{
+            db.collection('post').find().toArray((error2, result2)=>{
+                res.render('list.ejs', {posts : result2});
+            });
+        }
+    })
+})
+*/
+
+// put 활용하기
+app.put('/edit', (req, res)=>{
+    db.collection('post').updateOne({_id : parseInt(req.body.id)},
+    { $set : {title : req.body.title, date : req.body.date}}, (error, result)=>{
+        if(error){
+            console.log(error)
+        }else{
+            res.redirect('/list');
+        }
+    })
+})
+
+
+
+// 로그인
+app.get('/login', (req, res)=>{
+    res.render('login.ejs')
+})
+
+app.get('/fail', (req, res)=>{
+    res.render('loginfail.ejs')
+})
+
+app.post('/login', passport.authenticate('local', {
+    failureRedirect : '/fail'
+}), (req, res)=>{
+    res.redirect('/');
+})
+
+// 로그인 검사
+passport.use(new LocalStrategy({
+    usernameField: 'id',
+    passwordField: 'pw',
+    session: true,
+    passReqToCallback: false,
+}, function (id, pw, done) {
+    //console.log(id, pw);
+    db.collection('login').findOne({ id: id }, function (error, result) {
+      if (error) return done(error)
+      if (!result) return done(null, false, { message: '존재하지않는 아이디요' })
+
+      if (pw == result.pw) {
+        return done(null, result)
+      } else {
+        return done(null, false, { message: '비번틀렸어요' })
+      }
+    })
+}));
+
+// 세션 만들기 (로그인 성공시 발동)
+// 시리얼화 해서 쿠키에 저장!!
+passport.serializeUser(function (user, done) {
+    done(null, user.id)
+});
+
+// 세션에 담긴 정보로 DB 조회
+// DB 정보 조회하기 위해 다시 시리얼화 해제해 주는 것!!
+passport.deserializeUser(function (userId, done) {
+    db.collection('login').findOne({id : userId}, (error, result)=>{
+        done(null, {result})
+    })
+}); 
+
+
+
+// 마이페이지 만들기
+app.get('/mypage', isLoggedIn, (req, res)=>{
+    // 유저 정보는 req.user에 담겨있음
+    console.log(req.user)
+    res.render('mypage.ejs', {data : req.user})
+})
+
+function isLoggedIn (req, res, next){
+    if(req.user){
+        next();
+    } else {
+        res.send('Please log in first!')
+    }
+}

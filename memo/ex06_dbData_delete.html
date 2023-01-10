@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        ✅ ejs파일에서 삭제버튼을 만들어서 db 데이터를 삭제시켜보쟈
+
+        - 삭제버튼 => 서버에 삭제요청 => db 삭제
+        - 삭제하려면 delete 요청이 참 좋은데,
+          순수 html 상에서 delete 요청이 불가능
+
+        - 그럼 어떻게 delete 요청을 할 수 있을까?
+            1. method-override 라이브러리 이용
+                - node.js에서 쓸 수 있음
+            2. JavaScript AJAX 이용
+                => 서버만들 때 꼭 쓰니까 AJAX로 배워보쟈
+
+        ✅ AJAX란?
+        - 서버랑 통신할 수 있게 도와주는 JavaScript 문법
+            => 서버에 요청하는걸 도와주는 문법!!
+        - 가장 큰 장점은 새로고침 없이도 할 수 있다는 것!!
+        - 사용법
+            - script 태그로 js 열어주고
+            - jquery 문법으로
+                => jquery import 필요(src 복사해오기)
+                => slim 버전은 안됨!!(ajax 안됨)
+            - ajax 요청
+                => $.ajax()
+
+        - AJAX 기본문법
+            $.ajax(
+                method : '메소드(GET, POST, UPDATE, DELETE)',
+                url : '/요청할 경로',
+                data : {속성 : 값} => 요청과 함께 보낼 데이터(조건)
+            ).done(function(result){
+                ajax 요청이 성공한 후에 실행하는 콜백함수
+            })
+
+        - server.js 파일에서
+            app.delete('/요청받은 경로', (request, response)=>{
+                console.log(requset.body);
+                            => request.body에는 ajax에서 보내준 data가 담겨있음
+                
+                // 근데 종종 넘겨준 오브젝트 데이터의 속성에 대한 값이
+                   숫자에서 문자로 변환돼서 오는 경우가 있음
+                    => 변환해주면 됨!!
+                request.body.속성명 = parseInt(request.body.속성명);
+
+                // 삭제하기
+                db.collection('collection이름').deleteOne(request.body, 콜백함수)    
+            })
+
+        - 근데 이렇게 하면 버튼 상관없이 레더링 시에 특정 값만 삭제
+
+
+
+        ✅ 버튼 UI에 따라 해당 내용 삭제되도록 해보쟈
+        1. 버튼마다 번호달기
+        - html에서 데이터를 숨겨서 넣는 방법이 있는데, 속성으로 data-작명한이름=""로 넣어주는 것
+            그 안에도 물론 <%= %> 사용 가능!!
+            ex) <button data-id="<%= data._id %>">삭제</button>
+        
+        2. 버튼 클릭시 작동하는 동작으로 ajax 문법을 넣기
+            $('.버튼class').click(function(){
+                $.ajax({
+                method : 'DELETE',
+                url : '/delete',
+                data : {_id : 1}
+                }).done((result)=>{
+                    
+                })
+            })
+
+        3. e.target 활용 + data-작명한이름으로 넣어준 데이터 꺼내오기
+            $('.버튼class').click(function(e){
+
+                🌟 let data = e.target.dataset.작명한이름;
+
+                $.ajax({
+                method : 'DELETE',
+                url : '/delete',
+                data : {_id : data}
+                }).done((result)=>{
+                    
+                })
+            })
+
+        4. 버튼 눌러 삭제!!
+        - 요청은 잘 수행됨
+        - but ajax 특성상 새로고침이 되지 않음!!
+        - 요청 잘 처리되면 해당 요소 지워주는 코드 넣어주자
+            1. 강제로 페이지 새로고침 (location.reload)
+            2. 삭제버튼 누르면 해당 <li/> 요소 제거(눈속임)
+
+            ❗️ 여기서 잠깐
+            - 지금 상태에서는 요청에 대한 성공 여부를 브라우저에서 피드백해주지 않음
+            - 이를 위해서 성공과 실패시 각각 어떤 코드를 실행시켜줘야 하는데, 
+            그게 바로 ajax 함수 뒤에 붙는 done과 fail
+                $.ajax({
+                    method : 'DELETE',
+                    url : '/delete',
+                    data : {_id : idx}
+                }).done((result)=>{
+                    // 성공시 실행코드
+                }).fail(()=>{
+                    // 실패시 실행코드
+                })
+            - 또한, 성공과 실패를 판정하기 위한 코드도 필요함
+            - server.js의 delete 요청에서, 삭제한 이후 콜백함수에
+            response.status(특정응답코드).send({message : '메시지'}) 를 넣어주자
+            => 일단 무조건 성공하는 설정
+                app.delete('/delete', (request, response)=>{
+
+                    request.body._id = parseInt(request.body._id);
+
+                    db.collection('post').deleteOne(request.body, (error, result)=>{
+                        🔸 response.status(200).send({message : '성공'});
+                    })
+                })
+            - 응답코드는 정해진 값이 다 있음
+            - 200 : 요청 성공 (OK)
+            - 400 : 요청 실패 - 고객의 잘못 (Bad Request)
+            - 500 : 요청 실패 - 서버의 문제 (Internal Server Error)
+
+
+        - 다시 돌아와서 삭제 누른 <li>요소 안보이게 해보쟈
+        - jquery 버튼 클릭시 실행 함수 안에
+            var thisBtn = $(this);   추가
+            => e.target : 지금 클릭한 것
+            => this : 지금 이벤트 동작하는 곳
+            => 일반적으로 둘은 동일
+        - 성공시 실행 코드에 내용 추가
+            => this에 담긴 동작하는 곳의 부모 요소중 li가 있으면 없애주세요
+            => thisBtn.parent('li').fadeOut();
+                => fadeOut은 jquery에서 주는 애니메이션 중 하나(서서히 사라짐)
+            .done((result)=>{
+                console.log('성공')
+                thisBtn.parent('li').fadeOut();
+            })
+
+
+            ❗️ 여기서 잠까아ㅏㅏㅏㄴ
+            - 이렇게 하다보니 한 가지 버그를 발견했는데,
+            - 버튼 클릭시 현재 클릭한 요소의 정보를 넘겨주는 e 변수가
+            - function 문법으로 하면 this 문법도 잘 먹는데,
+            - ()=>{} 문법으로 하면 this가 이상하게 찍힘
+            - 일단은 this를 쓸 일이 있는 click 함수에서는 function 문법 사용하는걸로
+            - 사실 arrow function은 알다시피 this를 그대로 물려받기 때문에 조금 다른 부분이 있긴 함
+            - 그리고 오히려 .done 함수 내에서는 화살표함수가 this 변수를 잘 받는다고 소개됨
+
+        - 실패하면?
+            - 응답코드 400 넣어주고
+            - .fail 함수 코드 작성
+                내부에 아무 파라미터 3개를 넣어주면 받아주는데, 각 내용은
+                              응답코드      오류 메시지
+                .fail((xhr, testStatus, errorThrown)=>{
+                    console.log(xhr, testStatus, errorThrown)
+                })
+
+
+
+     -->
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+
+        ✅ 상세페이지 만들기
+        - 여러 비슷한 페이지가 만들어질 때
+        - 각 페이지에 경로를 지정해줄때 파라미터 사용하기 => url parameter
+        - 경로 뒤에 ':파라미터이름' 형식으로 사용하고,
+          콜백함수 내부에서는 '요청.params.파라미터이름' 형식으로 사용
+            app.get('/path/:파라미터', (req, res)=>{
+                console.log(req.params.파라미터);
+            })
+        - 그럼 해당 id 데이터 찾아서 일단 console에 찍어보쟈
+            app.get('/detail/:id', (req, res)=>{
+                db.collection('post').findOne({_id : req.params.id}, function(error, result){
+                    console.log(result);
+                })
+            })
+            => ❗️ null이 찍힘 => 왜?
+            => req.params.id 마우스 올려보면 string!!
+            => 내가 저장해둔 데이터는 number!!
+            => 이런거 확인 잘해야됨!! 형변환 해주쟈!!
+            => parseInt(req.params.id)
+        - ejs에 데이터 넘겨주고 사용하기~~
+            server.js
+                res.render('파일명.ejs', {data : result})
+            detail.ejs
+                할일 : <%= data.title%>;
+
+
+        ✅ 정해진 데이터 이외의 경로로 접근시 오류 페이지 만들어주기
+        - so simple
+        - 아까 url parameter로 받은 id를 숫자로 변형안했더니 result에 계속 null이 담기는걸 확인했음
+        - 그러니 findOne 콜백함수에서 if문으로 null 여부 확인해주기
+        
+        
+        ✅ list 페이지 제목 누르면 detail로 가기
+        - 제목 a 태그로 감싸고 ref에 경로 설정
+            <a href="/detail/<%= data._id%>">할일 제목 : <%= data.title %></a>
+        - 자동완성으로 하다보면 href에 파일 확장자까지 들어오는데, 그럼 안됨!!
+        - 경로는 파일명이 아닌 url 경로로 입력해줘야함!!
+
+
+        ✅ ajax를 활용한 데이터 삭제에서도 url parameter 사용가능
+        - ajax에서 데이터를 같이 넘겨주고, server 파일에서 데이터를 request에서 받아와서 데이터를 조회했었는데,
+        - 이를 url parameter로 대체가능
+        - list.ejs => 문자열 리터럴로 id에 해당하는 값을 경로에 넣어줌
+            $.ajax({
+                method : 'DELETE',
+                url : `/delete/${idx}`
+            })
+        - server.js => 
+            app.delete('/delete/:id', (request, response)=>{
+                db.collection('post').deleteOne({_id : parseInt(request.params.id)}, (error, result)=>{
+                    response.status(200).send({message : 'success'});
+                })
+            })
+
+
+
+
+        🟪 쉬어가기 - Bootstrap 기초
+        - class = "container"
+            pc, mobile 다양한 환경에서 적당히 여백 주는 역할
+        - class 안에서
+            margin-top => mt-숫자
+            padding-left => pl-숫자
+            text-align : center => text-center
+
+        🟪 쉬어가기 - css 파일 만들기
+        - public 폴더 만들어서 안에 css 넣기
+        - css는 변하지 않는 static 파일
+            => 이런건 public 폴더 안에 담는게 관습
+        - 넣고자 하는 html, ejs 파일에서
+            <link rel="stylesheet" href="/public/main.css">
+        - 하나더!! server.js에서
+            app.use('/public', express.static('public'));
+            => static 파일 보관위해 public 폴더를 쓸 것이라는 이야기
+            => 이런건 미들웨어(middleware)라고 함 - 요청과 응답 사이에서 작용하는 코드
+            
+        🟪 쉬어가기 - html 조립식으로 만들기
+        - nav 태그 중복
+        - react처럼 조립식으로 만들어보쟈
+        - ejs파일에서만 가능!!
+            1. views 폴더에 새파일 만들어서 nav 다 넣어주기
+            2. ejs파일에서
+                <%- include('nav.html') %> 넣어주기
+        
+        
+
+
+     -->
+</body>
+</html>

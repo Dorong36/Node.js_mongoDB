@@ -1,0 +1,55 @@
+<!-- 
+
+    1. mypage
+
+    - 마이페이지 ejs 파일 만들고
+    - server.js에서 get 만들어주는데,
+    - 미들웨어 만들어서 끼워넣어주쟈
+
+                        ⬇️ 🔹 미들웨어 쓰는 법
+    app.get('/mypage', isLoggedIn, (req, res)=>{
+        res.render('mypage.ejs')
+    })
+
+    ⬇️ 🔹 미들웨어 만드는 법
+    function isLoggedIn (req, res, next){
+        if(req.user){ 🔸 1) 요청.user가 있으면
+            next();   🔸 2) 통과
+        } else {
+            res.send('log in first, please')
+        }
+    }
+
+
+
+    2. DB에서 다른 정보 꺼내오고 싶다면?
+        => deserializeUser() : 로그인한 유저의 세션아이디를 바탕으로 개인정보를 DB에서 찾는 역할
+
+        passport.serializeUser(function (user, done) {
+            done(null, 🐱 user.id)
+        });
+
+        passport.deserializeUser(function (userId, done) {
+            🔸 1) 첫 파라미터에 담긴 🐱 user.id 데이터를 DB에서 찾은 뒤 유저 정보를 가져와서
+            db.collection('login').findOne({id : userId}, (error, result)=>{
+                done(null, {result 🔸 2) 여기에 넣음 })
+            })
+        });
+
+        => 유저의 DB 이름같은걸 가져와서 마이페이지에 출력해줄 수 있음!!
+        => 마이페이지 접속 시 어디 담겨있냐면
+            => deserialize 작업이 되면 모든 request.user로 데이터가 담기는 듯
+            app.get('/mypage', isLoggedIn, (req, res)=>{
+                // 🔹 유저 정보는 req.user에 담겨있음
+                console.log(req.user)
+                res.render('mypage.ejs')
+            })
+
+
+    - 회원관리 다배움
+        +) 가입은 insertOne 하시고~~
+
+
+
+
+ -->
